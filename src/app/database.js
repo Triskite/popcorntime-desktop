@@ -27,6 +27,10 @@ db.tvshows = new Datastore({
 	filename: path.join(data_path, 'data/shows.db'),
 	autoload: true
 });
+db.offline = new Datastore({
+	filename: path.join(data_path, 'data/offline.db'),
+	autoload: true
+});
 db.movies = new Datastore({
 	filename: path.join(data_path, 'data/movies.db'),
 	autoload: true
@@ -45,6 +49,7 @@ function promisifyDatastore(datastore) {
 promisifyDatastore(db.bookmarks);
 promisifyDatastore(db.settings);
 promisifyDatastore(db.tvshows);
+promisifyDatastore(db.offline);
 promisifyDatastore(db.movies);
 promisifyDatastore(db.watched);
 
@@ -74,12 +79,8 @@ db.settings.ensureIndex({
 	unique: true
 });
 
-var extractIds = function (items) {
-	return _.pluck(items, 'imdb_id');
-};
-
-var extractMovieIds = function (items) {
-	return _.pluck(items, 'movie_id');
+var extract = function (items, id_type) {
+	return _.pluck(items, id_type);
 };
 
 // This utilizes the exec function on nedb to turn function calls into promises
@@ -103,6 +104,16 @@ var Database = {
 	deleteMovie: function (imdb_id) {
 		return db.movies.remove({
 			imdb_id: imdb_id
+		});
+	},
+
+	addOfflineDirect: function (data) {
+		return db.offline.insert(data);
+	},
+
+	deleteOfflineByID: function (offline_id) {
+		return db.offline.remove({
+			offline_id: offline_id
 		});
 	},
 
@@ -133,6 +144,26 @@ var Database = {
 		});
 	},
 
+	addOffline: function (offline_id, type) {
+		App.userOffline.push(offline_id);
+		return db.offline.insert({
+			offline_id: offline_id,
+			type: type
+		});
+	},
+
+	deleteOffline: function (offline_id) {
+		App.userOffline.splice(App.userOffline.indexOf(offline_id), 1);
+		return db.offline.remove({
+			offline_id: offline_id
+		});
+	},
+
+	deleteOfflineDB: function () {
+		return db.offline.remove({}, {
+			multi: true
+		});
+	},
 	deleteWatched: function () {
 		return db.watched.remove({}, {
 			multi: true
@@ -154,10 +185,31 @@ var Database = {
 			.then(function (data) {
 				var bookmarks = [];
 				if (data) {
-					bookmarks = extractIds(data);
+					bookmarks = extract(data, 'imdb_id');
 				}
 
 				return bookmarks;
+			});
+	},
+
+	getOffline: function (data) {
+		var page = data.page - 1;
+		var byPage = 50;
+		var offset = page * byPage;
+		var query = {};
+
+		return promisifyDb(db.offline.find(query).skip(offset).limit(byPage));
+	},
+
+	getAllOffline: function () {
+		return promisifyDb(db.offline.find({}))
+			.then(function (data) {
+				var offline = [];
+				if (data) {
+					offline = extract(data, 'offline_id');
+				}
+
+				return offline;
 			});
 	},
 
@@ -353,12 +405,12 @@ var Database = {
 
 		var movies = Database.getMoviesWatched()
 			.then(function (data) {
-				App.watchedMovies = extractMovieIds(data);
+				App.watchedMovies = extract(data, 'movie_id');
 			});
 
 		var episodes = Database.getAllEpisodesWatched()
 			.then(function (data) {
-				App.watchedShows = extractIds(data);
+				App.watchedShows = extract(data, 'imdb_id');
 			});
 
 		return Q.all([bookmarks, movies, episodes]);
@@ -399,6 +451,8 @@ var Database = {
 		fs.unlinkSync(path.join(data_path, 'data/bookmarks.db'));
 
 		fs.unlinkSync(path.join(data_path, 'data/shows.db'));
+		
+		fs.unlinkSync(path.join(data_path, 'data/offline.db'));
 
 		fs.unlinkSync(path.join(data_path, 'data/settings.db'));
 

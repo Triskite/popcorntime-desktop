@@ -60,6 +60,7 @@
 		getEmptyView: function () {
 			switch (App.currentview) {
 			case 'movies':
+			case 'offline':
 			case 'shows':
 			case 'anime':
 				if (this.collection.state === 'error') {
@@ -136,11 +137,17 @@
 						case 'movies':
 							App.currentview = 'shows';
 							break;
-						case 'shows':
+						case 'offline':
 							App.currentview = 'anime';
 							break;
-						default:
+						case 'shows':
+							App.currentview = 'offline';
+							break;
+						case 'anime':
 							App.currentview = 'movies';
+							break;
+						default:
+							App.currentview = 'offline';
 						}
 					} else if (combo === 'shift+tab') {
 						switch (App.currentview) {
@@ -148,10 +155,16 @@
 							App.currentview = 'anime';
 							break;
 						case 'anime':
+							App.currentview = 'offline';
+							break;
+						case 'offline':
 							App.currentview = 'shows';
 							break;
-						default:
+						case 'shows':
 							App.currentview = 'movies';
+							break;
+						default:
+							App.currentview = 'offline';
 						}
 					}
 
@@ -161,7 +174,7 @@
 				}
 			});
 
-			Mousetrap.bind(['ctrl+1', 'ctrl+2', 'ctrl+3'], function (e, combo) {
+			Mousetrap.bind(['ctrl+1', 'ctrl+2', 'ctrl+3', 'ctrl+4'], function (e, combo) {
 				if ((App.PlayerView === undefined || App.PlayerView.isClosed) && $('#about-container').children().length <= 0 && $('#player').children().length <= 0) {
 					switch (combo) {
 					case 'ctrl+1':
@@ -171,6 +184,9 @@
 						App.currentview = 'shows';
 						break;
 					case 'ctrl+3':
+						App.currentview = 'offline';
+						break;
+					case 'ctrl+4':
 						App.currentview = 'anime';
 						break;
 					}
@@ -277,6 +293,7 @@
 			switch (App.currentview) {
 			case 'movies':
 			case 'shows':
+			case 'offline':
 			case 'anime':
 				$('#load-more-item').remove();
 				// we add a load more

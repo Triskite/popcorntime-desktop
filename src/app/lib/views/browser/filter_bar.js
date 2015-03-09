@@ -26,6 +26,7 @@
 			'click #filterbar-about': 'about',
 			'click .showMovies': 'showMovies',
 			'click .showShows': 'showShows',
+			'click .showOffline': 'showOffline',
 			'click .showAnime': 'showAnime',
 			'click #filterbar-favorites': 'showFavorites',
 			'click #filterbar-watchlist': 'showWatchlist',
@@ -46,6 +47,10 @@
 			$('.right .search').show();
 			$('.filter-bar').find('.active').removeClass('active');
 			switch (set) {
+			case 'Offline':
+			case 'offline':
+				$('.source.showOffline').addClass('active');
+				break;
 			case 'TV Series':
 			case 'shows':
 				$('.source.showShows').addClass('active');
@@ -130,6 +135,9 @@
 				switch (activetab) {
 				case 'TV Series':
 					App.currentview = 'shows';
+					break;
+				case 'Offline':
+					App.currentview = 'offline';
 					break;
 				case 'Movies':
 					App.currentview = 'movies';
@@ -293,6 +301,15 @@
 			App.vent.trigger('torrentCollection:close');
 			App.vent.trigger('shows:list', []);
 			this.setactive('TV Series');
+		},
+
+		showOffline: function (e) {
+			e.preventDefault();
+			App.currentview = 'offline';
+			App.vent.trigger('about:close');
+			App.vent.trigger('torrentCollection:close');
+			App.vent.trigger('offline:list', []);
+			this.setactive('Offline');
 		},
 
 		showAnime: function (e) {

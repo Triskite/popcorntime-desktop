@@ -84,6 +84,11 @@
 				popcornCallback(callback);
 			});
 
+			server.expose('offlineList', function (args, opt, callback) {
+				$('.source.showOffline').click();
+				popcornCallback(callback);
+			});
+
 			server.expose('movieslist', function (args, opt, callback) {
 				$('.source.showMovies').click();
 				popcornCallback(callback);

@@ -8,6 +8,7 @@
 	var queryTorrents = function (filters) {
 		return App.db.getBookmarks(filters)
 			.then(function (data) {
+					//win.error(JSON.stringify(data));
 					return data;
 				},
 				function (error) {
@@ -15,6 +16,10 @@
 				});
 	};
 
+	var display = function (movieList) {
+		win.error(JSON.stringify(movieList));
+
+	};
 	var formatForPopcorn = function (items) {
 		var movieList = [];
 
@@ -31,6 +36,7 @@
 							if (/slurm.trakt.us/.test(data.image)) {
 								data.image = data.image.replace(/slurm.trakt.us/, 'walter.trakt.us');
 							}
+							//win.error(JSON.stringify(data));
 							deferred.resolve(data);
 						},
 						function (err) {
@@ -55,6 +61,7 @@
 							return provider.detail(data.imdb_id, data);
 						} else {
 							data.image = data.images.poster;
+							//win.error(JSON.stringify(data));
 							deferred.resolve(data);
 							return null;
 						}
@@ -67,6 +74,7 @@
 							data.type = 'bookmarkedshow';
 							data.imdb = data.imdb_id;
 							data.image = data.images.poster;
+							//win.error(JSON.stringify(data));
 							deferred.resolve(data);
 						}
 					}, function (err) {
@@ -79,11 +87,15 @@
 						deferred.resolve(_data);
 					});
 			}
-
+			//win.error(JSON.stringify(deferred.promise));
 			movieList.push(deferred.promise);
-		});
+			//win.error(JSON.stringify(deferred.promise));
 
-		return Q.all(movieList);
+		});
+		//win.error(JSON.stringify(Q.all(movieList)));
+
+		return Q.all(movieList)
+			.then(display(JSON.stringify(movieList[0])));
 	};
 
 	Favorites.prototype.extractIds = function (items) {

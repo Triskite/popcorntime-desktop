@@ -21,6 +21,10 @@
 						<td><%= i18n.__("Open Settings") %></td>
 					</tr>
 					<tr>
+						<td><span class="key control"><%= i18n.__("ctrl") %></span>+<span class="key">f</span></td>
+						<td><%= i18n.__("Open Search Bar") %></td>
+					</tr>
+					<tr>
 						<td><span class="key control">TAB</span></td>
 						<td><%= i18n.__("Switch to next tab") %></td>
 					</tr>

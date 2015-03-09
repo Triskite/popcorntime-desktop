@@ -56,12 +56,16 @@
 			// Application events
 			App.vent.on('movies:list', _.bind(this.showMovies, this));
 			App.vent.on('shows:list', _.bind(this.showShows, this));
+			App.vent.on('offline:list', _.bind(this.showOffline, this));
 			App.vent.on('anime:list', _.bind(this.showAnime, this));
 			App.vent.on('favorites:list', _.bind(this.showFavorites, this));
 			App.vent.on('favorites:render', _.bind(this.renderFavorites, this));
 			App.vent.on('watchlist:list', _.bind(this.showWatchlist, this));
 			App.vent.on('shows:update', _.bind(this.updateShows, this));
 			App.vent.on('shows:init', _.bind(this.initShows, this));
+			App.vent.on('offline:init', _.bind(this.initOffline, this));
+			App.vent.on('offline:update', _.bind(this.updateOffline, this));
+			App.vent.on('offline:render', _.bind(this.renderOffline, this));
 
 			// Add event to show disclaimer
 			App.vent.on('show:disclaimer', _.bind(this.showDisclaimer, this));
@@ -92,6 +96,10 @@
 			// Tv Shows
 			App.vent.on('show:showDetail', _.bind(this.showShowDetail, this));
 			App.vent.on('show:closeDetail', _.bind(this.closeShowDetail, this.MovieDetail));
+
+			// Offline
+			App.vent.on('offline:showDetail', _.bind(this.showOfflineDetail, this));
+			App.vent.on('offline:closeDetail', _.bind(this.closeOfflineDetail, this.MovieDetail));
 
 			// Settings events
 			App.vent.on('settings:show', _.bind(this.showSettings, this));
@@ -164,10 +172,12 @@
 						that.showFavorites();
 					} else if (Settings.startScreen === 'TV Series' || (lastOpen && Settings.lastTab === 'TV Series')) {
 						that.showShows();
+					} else if (Settings.startScreen === 'Offline' || (lastOpen && Settings.lastTab === 'Offline')) {
+   						that.showOffline();
 					} else if (Settings.startScreen === 'Anime' || (lastOpen && Settings.lastTab === 'Anime')) {
 						that.showAnime();
 					} else {
-						that.showMovies();
+						that.showOffline();
 					}
 
 					// do we celebrate events?
@@ -205,6 +215,13 @@
 			this.Content.show(new App.View.MovieBrowser());
 		},
 
+		showOffline: function (e) {
+			this.Settings.close();
+			this.MovieDetail.close();
+
+			this.Content.show(new App.View.OfflineBrowser());
+		},
+
 		showShows: function (e) {
 			this.Settings.close();
 			this.MovieDetail.close();
@@ -232,6 +249,20 @@
 			});
 		},
 
+		updateOffline: function (e) {
+			var that = this;
+			App.vent.trigger('offline:closeDetail');
+			this.Content.show(new App.View.InitModal());
+			App.db.syncDB(function () {
+				that.InitModal.close();
+				that.showOffline();
+				// Focus the window when the app opens
+				that.nativeWindow.focus();
+
+			});
+		},
+
+
 		connectVpn: function (e) {
 			App.VPNClient.launch();
 		},
@@ -256,6 +287,25 @@
 			});
 		},
 
+		initOffline: function (e) {
+			var that = this;
+			App.vent.trigger('settings:close');
+			this.Content.show(new App.View.InitModal());
+			App.db.initDB(function (err, data) {
+				that.InitModal.close();
+
+				if (!err) {
+					// we write our new update time
+					//AdvSettings.set('tvshow_last_sync', +new Date());
+				}
+
+				App.vent.trigger('offline:list');
+				// Focus the window when the app opens
+				that.nativeWindow.focus();
+
+			});
+		},
+
 		showFavorites: function (e) {
 			this.Settings.close();
 			this.MovieDetail.close();
@@ -269,6 +319,15 @@
 			$('.right .search').hide();
 			$('.filter-bar').find('.active').removeClass('active');
 			$('#filterbar-favorites').addClass('active');
+		},
+
+		renderOffline: function (e) {
+			//this is wrong as offline is not in the filter bar
+			this.Content.show(new App.View.OfflineBrowser());
+			App.currentview = 'Offline';
+			$('.right .search').hide();
+			$('.filter-bar').find('.active').removeClass('active');
+			$('#filterbar-offline').addClass('active');
 		},
 
 		showWatchlist: function (e) {
@@ -327,6 +386,17 @@
 		closeMovieDetail: function (movieModel) {
 			_this.MovieDetail.close();
 			App.vent.trigger('shortcuts:movies');
+		},
+
+		showOfflineDetail: function (offlineModel) {
+			this.MovieDetail.show(new App.View.OfflineDetail({
+				model: offlineModel
+			}));
+		},
+
+		closeOfflineDetail: function (offlineModel) {
+			_this.MovieDetail.close();
+			App.vent.trigger('shortcuts:offline');
 		},
 
 		showShowDetail: function (showModel) {

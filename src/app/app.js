@@ -31,7 +31,10 @@ var
 
 	moment = require('moment'),
 
-	Q = require('q');
+	Q = require('q'),
+
+	thumbbot = require('thumbbot');
+	//PhantomJS = require('phantomjs')
 
 // Special Debug Console Calls!
 win.log = console.log.bind(console);
@@ -79,6 +82,11 @@ if (gui.App.fullArgv.indexOf('--reset') !== -1) {
 		}
 	});
 	fs.unlinkSync(path.join(data_path, 'data/shows.db'), function (err) {
+		if (err) {
+			throw err;
+		}
+	});
+	fs.unlinkSync(path.join(data_path, 'data/offline.db'), function (err) {
 		if (err) {
 			throw err;
 		}
@@ -360,7 +368,12 @@ window.ondrop = function (e) {
 
 	var file = e.dataTransfer.files[0];
 
-	if (file != null && (file.name.indexOf('.torrent') !== -1 || file.name.indexOf('.srt') !== -1)) {
+	var curView = App.currentview;
+	switch (curView) {
+	case 'offline':
+		break;
+	default:
+		if (file != null && (file.name.indexOf('.torrent') !== -1 || file.name.indexOf('.srt') !== -1)) {
 		var reader = new FileReader();
 
 		reader.onload = function (event) {
@@ -392,6 +405,9 @@ window.ondrop = function (e) {
 	}
 
 	return false;
+	}
+
+	
 };
 
 // Paste Magnet Link to start stream

@@ -35,7 +35,7 @@ var parseBuildPlatforms = function (argumentPlatform) {
 
 module.exports = function (grunt) {
 	"use strict";
-
+	//grunt.loadNpmTasks('grunt-node-inspector');
 	var host = getHost();
 	var buildPlatforms = parseBuildPlatforms(grunt.option('platforms'));
 	var pkgJson = grunt.file.readJSON('package.json');

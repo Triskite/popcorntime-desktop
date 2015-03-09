@@ -145,6 +145,7 @@
 
 		providers: {
 			movie: ['Yts'],
+			offline: ['offline'],
 			tvshow: ['Eztv'],
 			anime: ['Haruhichan'],
 			subtitle: 'YSubs',
